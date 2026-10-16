@@ -25,7 +25,7 @@
  <div class="top-actions"><button class="primary" id="audio-toggle" aria-pressed="false">Start audio</button><button id="reset">Reset</button><span id="audio-status" role="status">Ready to play</span></div>
 </header>
 <section class="panel hardware" aria-label="Arduino sensor connection">
- <div class="hardware-top"><div><h2>A0 → position · A1 → diameter · A2 → pitch</h2><p class="hint">A0 moves the tongue back ↔ front. Bend A1 to change its diameter. Turn A2 to sweep pitch from 60 to 600 Hz.</p></div><button id="serial-toggle" aria-pressed="false">Connect Arduino</button></div>
+ <div class="hardware-top"><div><h2>A0 → position · A1 → diameter · A2 → pitch</h2><p class="hint">A0 moves the tongue back ↔ front. Bend A1 to change its diameter. Turn A2 through 37 semitone steps from C3 to C6.</p></div><button id="serial-toggle" aria-pressed="false">Connect Arduino</button></div>
  <p class="hardware-status"><span id="serial-led" aria-hidden="true"></span><span id="serial-status" role="status">Connect your Arduino over USB.</span></p>
  <div class="hardware-bottom"><div class="switches"><label class="switch"><input id="serial-follow" type="checkbox" checked>Follow potentiometer</label><label class="switch"><input id="serial-reverse" type="checkbox">Reverse direction</label></div><div class="hardware-data"><span>ADC <strong id="serial-raw">—</strong></span><meter id="serial-meter" min="0" max="1" value="0" aria-label="Calibrated slider position"></meter><strong id="serial-position">—</strong><span>Tongue <strong id="tongue-readout">12.90</strong></span></div></div>
  <p class="mini" id="serial-mode" style="margin:9px 0 0">Waiting for potentiometer</p>
@@ -36,7 +36,7 @@
  <p class="mini" id="flex-calibration">Calibrate for your sensor</p>
  </div>
  <div style="border-top:1px solid var(--line);margin-top:14px;padding-top:14px">
- <div class="hardware-bottom"><div class="switches"><label class="switch"><input id="pitch-follow" type="checkbox" checked>Follow pitch potentiometer</label><label class="switch"><input id="pitch-reverse" type="checkbox">Reverse pitch direction</label></div><div class="hardware-data"><span>A2 <strong id="pitch-raw">—</strong></span><meter id="pitch-meter" min="0" max="1" value="0" aria-label="Calibrated pitch potentiometer position"></meter><strong id="pitch-position">—</strong><span>Pitch <strong id="pitch-frequency">140.0 Hz</strong></span></div></div>
+ <div class="hardware-bottom"><div class="switches"><label class="switch"><input id="pitch-follow" type="checkbox" checked>Follow pitch potentiometer</label><label class="switch"><input id="pitch-reverse" type="checkbox">Reverse pitch direction</label></div><div class="hardware-data"><span>A2 <strong id="pitch-raw">—</strong></span><meter id="pitch-meter" min="0" max="1" value="0" aria-label="Calibrated pitch potentiometer position"></meter><strong id="pitch-position">—</strong><span>Pitch <strong id="pitch-frequency">C4 · 261.63 Hz</strong></span></div></div>
  <p class="mini" id="pitch-mode">Waiting for pitch potentiometer on A2</p>
  <div class="row-actions"><button id="pitch-calibrate">Calibrate pitch travel</button><button id="pitch-full-range">Reset pitch range</button></div>
  <p class="mini" id="pitch-calibration">Input range: 0–1023 · full ADC range</p>
@@ -48,7 +48,7 @@
  <li>Open this HTML in desktop Chrome or Edge. Click <b>Connect Arduino</b>, select the board, then <b>Start audio</b>. Serial speed is <b>115200 baud</b>.</li>
  <li>Click <b>Calibrate flex</b>, slowly straighten and comfortably bend the sensor a few times, then click <b>Finish calibration</b>. This maps its measured range to diameter <b>2.05–3.50</b>.</li>
  <li>With this wiring, bending normally lowers the ADC reading. Reverse flex direction starts enabled so bending increases diameter. Toggle it to swap direction.</li>
- <li>Turn the A2 potentiometer for low → high pitch (60–600 Hz). Equal travel gives equal musical intervals. Use <b>Reverse pitch direction</b> to swap the ends.</li>
+ <li>Turn the A2 potentiometer through all 37 chromatic notes from C3 (130.81 Hz) to C6 (1046.50 Hz), including sharps. The full calibrated travel spans three octaves in semitone steps. Pitch starts steady; you can add vibrato or wobble in the sound controls. Use <b>Reverse pitch direction</b> to swap the ends.</li>
  </ol><p>On-screen pitch edits or dragging the voicebox pause only A2 pitch control. On-screen diameter edits pause only flex control. Position edits pause only potentiometer control. Dragging the tongue pauses both. Re-enable the relevant Follow checkbox to resume.</p>
  <p>At diameter 3.50 the original model’s position limits meet at the centre. Position travel returns as diameter decreases.</p>
  <p>Save settings includes all three calibrations and directions. Loading pauses all hardware controls.</p></div>
@@ -60,13 +60,21 @@
  <h3>Connection help</h3><p>Open the downloaded HTML outside the preview. If Web Serial is unavailable, serve its folder with <code>python3 -m http.server 8000</code> and open <code>http://localhost:8000/Pink-Trombone-Flex.html</code>. A USB data cable is required. Sound comes from your computer.</p></div></div>
  </details>
 </section>
+<section class="panel hardware" aria-label="MIDI melody player">
+ <div class="hardware-top"><div><h2>I will always love you</h2><p class="hint">MIDI melody · 70 BPM · one octave lower · G♯4–C♯5</p></div><button class="primary" id="midi-play" aria-pressed="false">Play MIDI</button></div>
+ <div class="row-actions"><button id="midi-restart">Restart MIDI</button><button id="midi-stop" disabled>Stop MIDI</button><button id="midi-follow" disabled>Reset pitch shift</button><label class="switch"><input id="midi-loop" type="checkbox">Loop melody</label></div>
+ <div class="control-row" style="margin-top:14px"><div class="control-caption"><label for="midi-shift">Melody pitch shift</label><output id="midi-shift-label" for="midi-shift">0 semitones</output></div><input id="midi-shift" type="range" min="-20" max="11" step="1" value="0" aria-label="Melody pitch shift"></div>
+ <p class="mini" id="midi-status" role="status">Ready · press Play MIDI to begin.</p>
+ <div class="hardware-data"><progress id="midi-progress" max="18.96250316" value="0" aria-label="MIDI playback progress" style="flex:1;min-width:100px;accent-color:var(--pink)"></progress><span id="midi-time">0:00 / 0:19</span></div>
+ <p class="mini">Turn A2 or adjust the pitch controls to shift the melody while its notes keep playing. A0 changes tongue position; A1 changes diameter. All three work during playback. <b>Reset pitch shift</b> returns to the recorded melody, one octave lower. Stop returns A2 to direct C3–C6 pitch control.</p>
+</section>
 <div class="workspace">
  <div class="instrument">
   <section class="stage" aria-label="Vocal tract instrument">
    <div class="stage-header"><strong>Vocal tract</strong><span>Drag · narrow · release</span></div>
    <div id="sketch"></div>
    <div class="stage-footer">
-    <div class="readouts"><div><span>Target pitch</span><strong id="pitch-readout">140.0 Hz</strong></div><div><span>Live pitch</span><strong id="live-frequency">—</strong></div><div><span>Tenseness</span><strong id="tension-readout">0.60</strong></div><div><span>Nasal opening</span><strong id="nasal-readout">0.010</strong></div></div>
+    <div class="readouts"><div><span>Target pitch</span><strong id="pitch-readout">C4 · 261.63 Hz</strong></div><div><span>Live pitch</span><strong id="live-frequency">—</strong></div><div><span>Tenseness</span><strong id="tension-readout">0.60</strong></div><div><span>Nasal opening</span><strong id="nasal-readout">0.010</strong></div></div>
     <p class="stage-note">Drag the tongue circle for vowels. Touch the oral passage for friction; push past its roof for a closure. Touch the nasal passage to open the velum. The voicebox pad controls pitch ↔ and tenseness ↕.</p>
     <div class="stage-tools"><label class="switch"><input id="pinMode" type="checkbox">Pin new constrictions</label><label class="switch"><input id="visualWobble" type="checkbox" checked>Animate sound</label><button id="hold-voice">Hold to voice</button></div>
    </div>
@@ -74,10 +82,10 @@
   <p class="mini" id="engine-status">Audio starts with your first interaction. No microphone or internet connection needed.</p>
  </div>
  <aside class="controls" aria-label="Sound parameters">
-  <section class="panel"><h2>Voicebox</h2><div class="switches"><label class="switch"><input id="alwaysVoice" type="checkbox" checked>Always voice</label><label class="switch"><input id="autoWobble" type="checkbox" checked>Pitch wobble</label></div><div id="voice-controls"></div><div class="row-actions"><label class="switch"><input id="linkLoudness" type="checkbox" checked>Link gain to tenseness</label></div></section>
+  <section class="panel"><h2>Voicebox</h2><div class="switches"><label class="switch"><input id="alwaysVoice" type="checkbox" checked>Always voice</label><label class="switch"><input id="autoWobble" type="checkbox">Pitch wobble</label></div><div id="voice-controls"></div><div class="row-actions"><label class="switch"><input id="linkLoudness" type="checkbox" checked>Link gain to tenseness</label></div></section>
   <section class="panel"><h2>Tongue & nose</h2><div id="shape-controls"></div><div class="row-actions"><button id="close-nose">Close velum</button><button id="open-nose">Open velum</button></div></section>
   <section class="panel"><h2>Persistent constrictions</h2><p class="hint">Combine several closures with a mouse. Opening 0 closes the passage; a small opening creates friction. Position runs from throat to lips.</p><p class="empty" id="empty-pins">No pinned constrictions. Add one here, or enable “Pin new constrictions” and drag the tract.</p><div id="pin-list"></div><div class="row-actions"><button id="add-pin">+ Add constriction</button><button id="clear-pins">Clear all</button></div></section>
-  <details class="panel advanced"><summary>Advanced sound parameters</summary><div class="advanced-body"><h3>Pitch movement</h3><div id="modulation-controls"></div><div class="row-actions"><button id="steady">Make pitch steady</button></div><h3>Air & friction</h3><div id="noise-controls"></div><h3>Tract & release</h3><div id="physics-controls"></div><p class="hint" style="margin-top:14px;margin-bottom:0">Reset restores the original model settings. Wave retention and reflection control resonance; use output volume to set the listening level.</p></div></details>
+  <details class="panel advanced"><summary>Advanced sound parameters</summary><div class="advanced-body"><h3>Pitch movement</h3><div id="modulation-controls"></div><div class="row-actions"><button id="steady">Make pitch steady</button></div><h3>Air & friction</h3><div id="noise-controls"></div><h3>Tract & release</h3><div id="physics-controls"></div><p class="hint" style="margin-top:14px;margin-bottom:0">Reset restores the starting voice with steady C4 pitch. Wave retention and reflection control resonance; use output volume to set the listening level.</p></div></details>
  </aside>
 </div>
 <div class="bottom">
@@ -1168,9 +1176,22 @@ var Tract =
  let configured=false;
  const tracked=new Map();
  const wave=new Float32Array(512);
+ let midiTimeline=null,midiStartSample=0,midiNote=null;
+ function applyMidi(){
+   alwaysVoice=settings.alwaysVoice;Glottis.isTouched=!!settings.voiceHeld;
+   Glottis.UIFrequency=settings.frequency;midiNote=null;
+   if(!midiTimeline?.enabled)return;
+   let time=midiTimeline.position+(midiTimeline.playing?(sampleCounter-midiStartSample)/sampleRate:0);
+   if(midiTimeline.loop)time%=midiTimeline.duration;
+   const sounding=midiTimeline.playing&&time<midiTimeline.duration;
+   const note=sounding?midiTimeline.notes.findLast(n=>n.start<=time&&time<n.end):null;
+   alwaysVoice=!!note;Glottis.isTouched=false;
+   if(note){midiNote=note.note+midiTimeline.transpose;Glottis.UIFrequency=440*Math.pow(2,(midiNote-69)/12);}
+ }
  function configure(next){
    const oldA=settings.aspirationFrequency,oldF=settings.fricationFrequency,oldQ=settings.noiseQ;
    Object.assign(settings,next);
+   if(next.midi&&next.midi.revision!==midiTimeline?.revision){midiTimeline=next.midi;midiStartSample=sampleCounter;}
    alwaysVoice=settings.alwaysVoice;autoWobble=settings.autoWobble;
    Glottis.UIFrequency=settings.frequency;Glottis.UITenseness=settings.tenseness;
    Glottis.loudness=settings.loudness;Glottis.vibratoAmount=settings.vibratoAmount;Glottis.vibratoFrequency=settings.vibratoFrequency;
@@ -1190,6 +1211,7 @@ var Tract =
    }
    for(const [id,t] of tracked)if(!seen.has(id)&&t.alive){t.alive=false;t.end=now;t.releaseLevel=t.fricative_intensity;}
    UI.touchesWithMouse=Array.from(tracked.values());
+   applyMidi();
  }
  function blockEnd(){
    Glottis.finishBlock();Tract.finishBlock();
@@ -1202,6 +1224,7 @@ var Tract =
  }
  function process(output){
    for(let j=0;j<output.length;j++){
+     if(j===0||sampleCounter%128===0)applyMidi();
      const white=noiseBuffer[cursor++];if(cursor>=noiseBuffer.length)cursor=0;
      // In the original graph both bandpass nodes feed the same ScriptProcessor input.
      const noiseSample=aspirationFilter.step(white)+fricationFilter.step(white);
@@ -1216,7 +1239,7 @@ var Tract =
      sampleCounter++;if(sampleCounter%512===0)blockEnd();
    }
  }
- function snapshot(){return {diameter:Array.from(Tract.diameter),noseDiameter:Array.from(Tract.noseDiameter),amplitude:Array.from(Tract.maxAmplitude),noseAmplitude:Array.from(Tract.noseMaxAmplitude),frequency:Glottis.frequency,intensity:Glottis.intensity,wave:Array.from(wave),samples:sampleCounter};}
+ function snapshot(){return {diameter:Array.from(Tract.diameter),noseDiameter:Array.from(Tract.noseDiameter),amplitude:Array.from(Tract.maxAmplitude),noseAmplitude:Array.from(Tract.noseMaxAmplitude),frequency:Glottis.frequency,intensity:Glottis.intensity,wave:Array.from(wave),samples:sampleCounter,midiNote};}
  return {configure,process,snapshot};
 }
 </script>
@@ -1346,17 +1369,85 @@ function createPinkSlider(options={}) {
  };
 }
 </script>
+<script>
+// The MIDI timeline uses the audio clock, so pausing audio also freezes playback.
+function createPinkMidiTransport(song, now) {
+ const minTranspose=48-Math.min(...song.notes.map(n=>n.note));
+ const maxTranspose=84-Math.max(...song.notes.map(n=>n.note));
+ let enabled=false,playing=false,offset=0,anchor=0,loop=false,transpose=0,revision=0,hardwareShift=false;
+ let hardwareAnchor=null,hardwareSignature=null;
+ function position(){
+  const elapsed=offset+(playing?Math.max(0,now()-anchor):0);
+  return loop?elapsed%song.duration:Math.min(song.duration,elapsed);
+ }
+ function state(){
+  const pos=position(),running=playing&&(loop||pos<song.duration);
+  // Last note-on wins through overlaps; an older note-off cannot cut it short.
+  const note=running?(song.notes.findLast(n=>n.start<=pos&&pos<n.end)??null):null;
+  const baseNote=song.notes.findLast(n=>n.start<=pos)?.note??song.notes[0].note;
+  return {enabled,playing:running,position:pos,loop,transpose,hardwareShift,minTranspose,maxTranspose,note,baseNote,revision,ended:enabled&&!loop&&pos>=song.duration};
+ }
+ function armHardware(hardware){
+  hardwareAnchor=hardware?.active?hardware.position:null;
+  hardwareSignature=hardware?.active?[hardware.low,hardware.high,hardware.reverse].join(':'):null;
+ }
+ function play(hardware){
+  offset=position();if(offset>=song.duration)offset=0;
+  enabled=playing=true;anchor=now();hardwareShift=false;armHardware(hardware);revision++;
+ }
+ function pause(){offset=position();playing=false;revision++;}
+ function stop(){enabled=playing=false;offset=transpose=0;hardwareShift=false;armHardware(null);revision++;}
+ function setTranspose(value,hardware){
+  transpose=Math.max(minTranspose,Math.min(maxTranspose,Math.round(value)));
+  hardwareShift=false;armHardware(hardware);revision++;
+ }
+ function observeHardware(hardware){
+  if(!enabled)return;
+  if(!hardware.active){
+   armHardware(null);
+   hardwareShift=false;
+   return;
+  }
+  const signature=[hardware.low,hardware.high,hardware.reverse].join(':');
+  if(hardwareAnchor===null||hardwareSignature!==signature||hardware.calibrating){hardwareShift=false;armHardware(hardware);return;}
+  // A deliberate move takes over transposition; the MIDI notes and rests keep playing.
+  if(!hardwareShift&&Math.abs(hardware.position-hardwareAnchor)<.02)return;
+  const exact=minTranspose+(maxTranspose-minTranspose)*hardware.position;
+  if(!hardwareShift||Math.abs(exact-transpose)>.62){
+   const next=Math.round(exact);
+   if(next!==transpose){transpose=next;revision++;}
+  }
+  hardwareShift=true;
+ }
+ return {state,play,pause,stop,setTranspose,observeHardware,
+  follow(hardware){setTranspose(0,hardware);},
+  restart(hardware){offset=0;playing=false;play(hardware);},
+  setLoop(value){const s=state();offset=s.position;playing=s.playing;anchor=now();loop=!!value;revision++;},
+  packet(){const s=state();return {revision,enabled,playing:s.playing,position:s.position,loop,transpose,duration:song.duration,notes:song.notes};}
+ };
+}
+
+</script>
 <script>/* p5.js interface. The DSP is defined above in createPinkVoice(). */
 (() => {
 'use strict';
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
-const DEFAULTS={frequency:140,tenseness:.6,loudness:1,effort:1,masterGain:.6,alwaysVoice:true,autoWobble:true,linkLoudness:true,tongueIndex:12.9,tongueDiameter:2.43,velum:.01,vibratoAmount:.005,vibratoFrequency:6,drift:1,wobbleDepth:1,aspiration:1,frication:1,aspirationFrequency:500,fricationFrequency:1000,noiseQ:.5,glottalReflection:.75,lipReflection:-.85,damping:.999,movementSpeed:15,burstStrength:.3,burstDecay:200,visualWobble:true,pinMode:false,voiceHeld:false};
+const MIN_PITCH_NOTE=48,MAX_PITCH_NOTE=84; // C3–C6, MIDI convention (A4 = 440 Hz).
+const NOTE_NAMES=['C','C♯','D','D♯','E','F','F♯','G','G♯','A','A♯','B'];
+const noteFrequency=note=>440*Math.pow(2,(note-69)/12);
+const pitchNote=frequency=>clamp(Math.round(69+12*Math.log2(frequency/440)),MIN_PITCH_NOTE,MAX_PITCH_NOTE);
+const steppedFrequency=frequency=>noteFrequency(pitchNote(frequency));
+const pitchLabel=frequency=>{const note=pitchNote(frequency);return NOTE_NAMES[note%12]+(Math.floor(note/12)-1)+' · '+frequency.toFixed(2)+' Hz';};
+const DEFAULTS={frequency:noteFrequency(60),tenseness:.6,loudness:1,effort:1,masterGain:.6,alwaysVoice:true,autoWobble:false,linkLoudness:true,tongueIndex:12.9,tongueDiameter:2.43,velum:.01,vibratoAmount:0,vibratoFrequency:6,drift:0,wobbleDepth:1,aspiration:1,frication:1,aspirationFrequency:500,fricationFrequency:1000,noiseQ:.5,glottalReflection:.75,lipReflection:-.85,damping:.999,movementSpeed:15,burstStrength:.3,burstDecay:200,visualWobble:true,pinMode:false,voiceHeld:false};
 let params={...DEFAULTS},pinned=[],nextId=1,dirty=true,audio=null,audioBusy=false,snapshot=null,hardware=null,flexHardware=null,pitchHardware=null;
+const MIDI_SONG={"title":"I will always love you","bpm":70,"transpose":-12,"duration":18.96250316,"notes":[{"start":0.0,"end":0.16160717,"note":69},{"start":0.222321466,"end":3.436607716,"note":69},{"start":3.416071998,"end":3.658929181,"note":71},{"start":3.638393464,"end":4.770536509,"note":69},{"start":5.155358002,"end":5.619643794,"note":69},{"start":5.579465216,"end":6.185715317,"note":68},{"start":6.185715317,"end":6.408036782,"note":69},{"start":6.650893966,"end":6.812501135,"note":69},{"start":6.75178684,"end":7.257144067,"note":71},{"start":7.237501206,"end":8.389287112,"note":69},{"start":8.349108534,"end":8.531251422,"note":71},{"start":8.450001408,"end":8.672322874,"note":73},{"start":8.672322874,"end":8.854465761,"note":71},{"start":8.773215748,"end":9.036608649,"note":73},{"start":9.016072931,"end":9.177680101,"note":71},{"start":9.097322945,"end":9.400001567,"note":73},{"start":9.31964441,"end":9.521430158,"note":71},{"start":9.48125158,"end":11.482144771,"note":69},{"start":11.987501998,"end":12.452680647,"note":69},{"start":12.412502069,"end":13.058930748,"note":68},{"start":13.079466466,"end":13.362502227,"note":69},{"start":13.524109397,"end":13.685716567,"note":69},{"start":13.625002271,"end":14.171430933,"note":71},{"start":14.171430933,"end":18.96250316,"note":69}]};
+const midi=createPinkMidiTransport(MIDI_SONG,()=>audio?.context.currentTime??0);
 const pointers=new Map();
+let heldPitchNote=null;
 let spaceHeld=false,buttonHeld=false,lastSent=0,lastStatsAt=0;
 const defs=[
- ['voice','frequency','Pitch',60,600,.1,'Hz'],
+ ['voice','frequency','Pitch',noteFrequency(MIN_PITCH_NOTE),noteFrequency(MAX_PITCH_NOTE),.01,'Hz'],
  ['voice','tenseness','Tenseness',0,1,.001,''],
  ['voice','effort','Voice intensity',0,1,.01,''],
  ['voice','loudness','Voiced gain',0,1.5,.01,''],
@@ -1388,9 +1479,21 @@ function buildControls(){
   row.innerHTML=`<div class="control-caption"><label for="ctl-${key}">${label}</label><span>${unit}</span></div><div class="control-inputs"><input type="range" id="ctl-${key}" min="${min}" max="${max}" step="${step}" aria-label="${label}"><input type="number" id="num-${key}" min="${min}" max="${max}" step="${step}" aria-label="${label}, numeric value"></div>`;
   $(group+'-controls').appendChild(row);
   for(const prefix of ['ctl-','num-']){
-   const el=$(prefix+key);el.value=params[key];
-   el.addEventListener('input',()=>{if(el.value!==''&&Number.isFinite(el.valueAsNumber)){if(key==='tongueIndex')hardware?.setFollow(false);if(key==='tongueDiameter')flexHardware?.setFollow(false);if(key==='frequency')pitchHardware?.setFollow(false);setParam(key,clamp(el.valueAsNumber,min,max));}});
-   el.addEventListener('change',()=>{el.value=params[key];});
+   const el=$(prefix+key),noteSlider=key==='frequency'&&prefix==='ctl-';
+   if(noteSlider){el.min=MIN_PITCH_NOTE;el.max=MAX_PITCH_NOTE;el.step=1;}
+   else if(key==='frequency'){
+    el.min=min.toFixed(2);el.max=max.toFixed(2);el.step='any';
+    el.addEventListener('keydown',event=>{
+     if(event.key!=='ArrowUp'&&event.key!=='ArrowDown')return;
+     event.preventDefault();
+     setManualFrequency(noteFrequency(clamp(pitchNote(params.frequency)+(event.key==='ArrowUp'?1:-1),MIN_PITCH_NOTE,MAX_PITCH_NOTE)));
+     el.value=params.frequency.toFixed(2);
+    });
+   }
+   const displayValue=()=>noteSlider?pitchNote(params[key]):key==='frequency'?params[key].toFixed(2):params[key];
+   el.value=displayValue();
+   el.addEventListener('input',()=>{if(el.value!==''&&Number.isFinite(el.valueAsNumber)){if(key==='tongueIndex')hardware?.setFollow(false);if(key==='tongueDiameter')flexHardware?.setFollow(false);const value=noteSlider?noteFrequency(el.valueAsNumber):el.valueAsNumber;if(key==='frequency')setManualFrequency(clamp(value,min,max));else setParam(key,clamp(value,min,max));}});
+   el.addEventListener('change',()=>{el.value=displayValue();});
   }
  }
 }
@@ -1401,6 +1504,7 @@ function hardwareTongueIndex(){
  return min+(max-min)*state.position;
 }
 function setParam(key,value){
+ if(key==='frequency')value=steppedFrequency(value);
  params[key]=value;
  if(key==='tenseness'&&params.linkLoudness)params.loudness=Math.pow(params.tenseness,.25);
  if(key==='linkLoudness'&&value)params.loudness=Math.pow(params.tenseness,.25);
@@ -1413,15 +1517,16 @@ function setParam(key,value){
 }
 function syncControls(){
  for(const [,key] of defs)for(const prefix of ['ctl-','num-']){
-  const el=$(prefix+key);if(el&&document.activeElement!==el)el.value=params[key];
+  const el=$(prefix+key);if(el&&document.activeElement!==el)el.value=key==='frequency'?(prefix==='ctl-'?pitchNote(params[key]):params[key].toFixed(2)):params[key];
+  if(key==='frequency'&&prefix==='ctl-')el.setAttribute('aria-valuetext',pitchLabel(params[key]));
  }
  for(const key of ['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'])$(key).checked=params[key];
  $('ctl-loudness').disabled=$('num-loudness').disabled=params.linkLoudness;
  const bounds=tongueBounds(params.tongueDiameter);
  $('ctl-tongueIndex').min=$('num-tongueIndex').min=bounds[0].toFixed(4);
  $('ctl-tongueIndex').max=$('num-tongueIndex').max=bounds[1].toFixed(4);
- $('pitch-readout').textContent=params.frequency.toFixed(1)+' Hz';
- $('pitch-frequency').textContent=params.frequency.toFixed(1)+' Hz';
+ $('pitch-readout').textContent=pitchLabel(params.frequency);
+ $('pitch-frequency').textContent=pitchLabel(params.frequency);
  $('tension-readout').textContent=params.tenseness.toFixed(2);
  $('nasal-readout').textContent=effectiveVelum().toFixed(3);
  $('tongue-readout').textContent=params.tongueIndex.toFixed(2);
@@ -1471,21 +1576,53 @@ function syncSensorStatus(){
 }
 function hardwarePitch(){
  const state=pitchHardware?.getState();
- // Logarithmic mapping: equal knob travel gives equal musical intervals.
- return state?.active ? 60*Math.pow(10,state.position) : null;
+ if(!state?.active){heldPitchNote=null;return null;}
+ const exactNote=MIN_PITCH_NOTE+(MAX_PITCH_NOTE-MIN_PITCH_NOTE)*state.position;
+ // Hold the current note through small ADC fluctuations at a step boundary.
+ if(heldPitchNote===null || Math.abs(exactNote-heldPitchNote)>.62)heldPitchNote=Math.round(exactNote);
+ return noteFrequency(heldPitchNote);
 }
+function setManualFrequency(value){
+ const state=midi.state();
+ if(state.enabled){midi.setTranspose(pitchNote(value)-state.baseNote,pitchHardware?.getState());syncMidi();dirty=true;}
+ else{pitchHardware?.setFollow(false);setParam('frequency',value);}
+}
+function midiTime(seconds){return Math.floor(seconds/60)+':'+String(Math.floor(seconds%60)).padStart(2,'0');}
+function syncMidi(){
+ const state=midi.state();
+ if(state.enabled){const frequency=noteFrequency(state.baseNote+state.transpose);if(frequency!==params.frequency)setParam('frequency',frequency);}
+ $('midi-play').textContent=state.playing?'Pause MIDI':state.ended?'Play again':state.enabled?'Resume MIDI':'Play MIDI';
+ $('midi-play').setAttribute('aria-pressed',String(state.playing));
+ $('midi-stop').disabled=!state.enabled;$('midi-follow').disabled=state.transpose===0&&!state.hardwareShift;
+ if(document.activeElement!==$('midi-shift'))$('midi-shift').value=state.transpose;
+ const shift=(state.transpose>0?'+':'')+state.transpose+' semitones';
+ $('midi-shift-label').textContent=shift;$('midi-shift').setAttribute('aria-valuetext',shift);
+ $('midi-loop').checked=state.loop;$('midi-progress').value=state.position;
+ $('midi-time').textContent=midiTime(state.ended?Math.ceil(state.position):state.position)+' / '+midiTime(Math.ceil(MIDI_SONG.duration));
+ const status=!state.enabled?'Ready · press Play MIDI to begin.':'MIDI · '+(state.ended?'Finished':state.playing?(state.note?pitchLabel(noteFrequency(state.note.note+state.transpose)):'Rest'):'Paused')+' · '+shift+(state.hardwareShift?' · A2 controls shift':'');
+ if($('midi-status').textContent!==status)$('midi-status').textContent=status;
+}
+function midiChanged(){dirty=true;syncMidi();syncPitch();send();}
+async function playMidi(restart=false){
+ await startAudio();if(!audio||audio.context.state!=='running')return;
+ if(restart)midi.restart(pitchHardware.getState());else midi.play(pitchHardware.getState());
+ midiChanged();
+}
+function stopMidi(){midi.stop();midiChanged();}
 function syncPitch(state=pitchHardware.getState()){
+ const before=midi.state().revision;midi.observeHardware(state);if(midi.state().revision!==before)dirty=true;
+ const playback=midi.state();
  $('pitch-follow').checked=state.follow;
  $('pitch-reverse').checked=state.reverse;
  $('pitch-raw').textContent=state.raw===null?'—':state.raw+' / '+state.adcMax;
  $('pitch-meter').value=state.position??0;
  $('pitch-position').textContent=state.position===null?'—':Math.round(state.position*100)+'%';
- $('pitch-mode').textContent=state.active?'A2 potentiometer controls pitch · 60–600 Hz':state.follow?'Waiting for pitch potentiometer on A2':'Manual pitch control';
+ $('pitch-mode').textContent=playback.enabled?'MIDI melody · '+(state.follow?'move A2 to shift all notes':'enable Follow pitch potentiometer for A2 pitch shift'):state.active?'A2 controls pitch · C3–C6 · semitone steps':state.follow?'Waiting for pitch potentiometer on A2':'Manual pitch control';
  $('pitch-calibrate').disabled=!state.receiving&&!state.calibrating;
  $('pitch-calibrate').textContent=state.calibrating?'Finish calibration':'Calibrate pitch travel';
  $('pitch-calibration').textContent=state.calibrating?'Turn fully to both ends, then finish. Observed: '+state.observedLow+'–'+state.observedHigh+'. '+state.message:'Input range: '+state.low+'–'+state.high+(state.custom?' · calibrated':' · full ADC range');
  const frequency=hardwarePitch();
- if(frequency!==null && Math.abs(frequency-params.frequency)>0.000001)setParam('frequency',frequency);
+ if(!playback.enabled&&frequency!==null && Math.abs(frequency-params.frequency)>0.000001)setParam('frequency',frequency);
  syncSensorStatus();
 }
 function point(index,diameter,wobble=0){
@@ -1526,7 +1663,7 @@ function geometry(){
  }
  return {targetDiameter:d,constrictions,velum:effectiveVelum()};
 }
-function message(){return {...params,...geometry(),voiceHeld:spaceHeld||buttonHeld||Array.from(pointers.values()).some(t=>t.role==='voice')};}
+function message(){return {...params,...geometry(),midi:midi.packet(),voiceHeld:spaceHeld||buttonHeld||Array.from(pointers.values()).some(t=>t.role==='voice')};}
 function send(){
  const payload=message();
  if(audio){if(audio.node.port)audio.node.port.postMessage({type:'parameters',values:payload});else audio.engine.configure(payload);}
@@ -1590,6 +1727,7 @@ function renderPins(){
 }
 function addPin(index=36,opening=.2){const n=nextId++;pinned.push({id:'pin-'+n,name:'C'+n,index,diameter:opening+.3,enabled:true,width:null});renderPins();dirty=true;}
 function reset(){
+ midi.stop();syncMidi();
  params={...DEFAULTS};pinned=[];pointers.clear();spaceHeld=buttonHeld=false;snapshot=null;nextId=1;
  params.frequency=hardwarePitch()??params.frequency;
  params.tongueDiameter=hardwareTongueDiameter()??params.tongueDiameter;
@@ -1604,10 +1742,11 @@ function saveState(){
 async function loadState(file){
  try{
   const state=JSON.parse(await file.text());if(state.version!==1||!state.parameters)throw new Error('Choose a Pink Trombone settings file.');
-  hardware.setFollow(false);flexHardware.setFollow(false);pitchHardware.setFollow(false);hardware.loadSettings(state.slider);flexHardware.loadSettings(state.flex);pitchHardware.loadSettings(state.pitch);
+  midi.stop();syncMidi();hardware.setFollow(false);flexHardware.setFollow(false);pitchHardware.setFollow(false);hardware.loadSettings(state.slider);flexHardware.loadSettings(state.flex);pitchHardware.loadSettings(state.pitch);
   const next={...DEFAULTS};
   for(const [,key,,min,max] of defs)if(Number.isFinite(state.parameters[key]))next[key]=clamp(state.parameters[key],min,max);
   for(const key of ['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'])if(typeof state.parameters[key]==='boolean')next[key]=state.parameters[key];
+  next.frequency=steppedFrequency(next.frequency);
   params=next;const b=tongueBounds(params.tongueDiameter);params.tongueIndex=clamp(params.tongueIndex,b[0],b[1]);
   pinned=(Array.isArray(state.constrictions)?state.constrictions:[]).slice(0,16).filter(c=>Number.isFinite(c.index)&&Number.isFinite(c.diameter)).map((c,i)=>({id:'pin-'+(i+1),name:'C'+(i+1),index:clamp(c.index,2,43),diameter:clamp(c.diameter,.3,3.3),enabled:c.enabled!==false,width:null}));
   nextId=pinned.length+1;pointers.clear();renderPins();setParam('masterGain',params.masterGain);syncControls();dirty=true;$('file-status').textContent='Settings loaded. Enable the relevant Follow checkbox to resume position, flex or pitch hardware control.';
@@ -1618,9 +1757,8 @@ function setupPointerEvents(canvas){
  function update(t,event){
   const p=coordinates(event);t.x=p.x;t.y=p.y;
   if(t.role==='voice'){
-   pitchHardware?.setFollow(false);
    const x=clamp((p.x-20)/560,0,1),localY=clamp(p.y-510,0,74);
-   params.frequency=87.3071*Math.pow(2,(20*x+.5)/12);
+   setManualFrequency(noteFrequency(MIN_PITCH_NOTE+Math.round((MAX_PITCH_NOTE-MIN_PITCH_NOTE)*x)));
    const f=clamp(1-localY/72,0,1);params.tenseness=1-Math.cos(f*Math.PI*.5);
    if(params.linkLoudness)params.loudness=Math.pow(params.tenseness,.25);
   }else if(t.role==='tongue'){
@@ -1672,6 +1810,12 @@ $('serial-calibrate').onclick=()=>{if(hardware.getState().calibrating)hardware.f
 $('serial-full-range').onclick=()=>hardware.resetCalibration();
 syncHardware();
 for(const key of ['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'])$(key).addEventListener('change',e=>setParam(key,e.target.checked));
+$('midi-play').onclick=()=>{if(midi.state().playing){midi.pause();midiChanged();}else void playMidi();};
+$('midi-restart').onclick=()=>void playMidi(true);$('midi-stop').onclick=stopMidi;
+$('midi-follow').onclick=()=>{midi.follow(pitchHardware.getState());midiChanged();};
+$('midi-shift').oninput=e=>{midi.setTranspose(Number(e.target.value),pitchHardware.getState());midiChanged();};
+$('midi-loop').onchange=e=>{midi.setLoop(e.target.checked);midiChanged();};
+syncMidi();
 $('audio-toggle').onclick=toggleAudio;$('reset').onclick=reset;$('add-pin').onclick=()=>addPin();$('clear-pins').onclick=()=>{pinned=[];renderPins();dirty=true;};
 $('open-nose').onclick=()=>setParam('velum',.4);$('close-nose').onclick=()=>setParam('velum',.01);
 $('steady').onclick=()=>{setParam('autoWobble',false);setParam('vibratoAmount',0);setParam('drift',0);};
@@ -1692,7 +1836,7 @@ new p5(p=>{
  function circle(i,d,r,color,filled){const a=at(i,d);p.stroke(color);p.strokeWeight(2);if(filled)p.fill(filled);else p.noFill();p.circle(a.x,a.y,r*2);}
  p.setup=()=>{const canvas=p.createCanvas(600,650);canvas.parent('sketch');canvas.elt.setAttribute('aria-label','Interactive vocal tract. Drag the tongue control, oral cavity, nasal cavity, or voicebox. All parameters also have labelled controls.');canvas.elt.setAttribute('role','img');p.pixelDensity(Math.min(window.devicePixelRatio||1,2));p.frameRate(60);p.textFont('Arial');p.strokeJoin(p.ROUND);p.strokeCap(p.ROUND);setupPointerEvents(canvas.elt);};
  p.draw=()=>{
-  hardware.tick();syncFlex();syncPitch();
+  hardware.tick();syncFlex();syncPitch();syncMidi();
   if(dirty&&p.millis()-lastSent>16){send();lastSent=p.millis();}
   if(audio?.engine&&p.millis()-lastStatsAt>33){snapshot=audio.engine.snapshot();lastStatsAt=p.millis();}
   p.background('#fffafd');
@@ -1723,24 +1867,25 @@ new p5(p=>{
    const a=at(c.index,Math.max(-1.5,c.diameter));p.stroke('#b13977');p.strokeWeight(1.5);p.fill('#ffffffb8');p.circle(a.x,a.y,18);
    if(c.name){p.noStroke();p.fill(dark);p.textAlign(p.CENTER,p.CENTER);p.textSize(10);p.text(c.name,a.x,a.y);}
   }
-  // Continuous logarithmic pitch / nonlinear tenseness pad.
+  // Semitone pitch steps C3–C6 / nonlinear tenseness pad.
   p.noStroke();p.fill(light);p.rect(20,500,560,98,12);
   p.fill('#f4e0eb');p.rect(20,546,560,2);
-  for(let i=0;i<20;i++){const x=20+(i+.5)*560/20;p.stroke(i%12===3||i%12===8||i%12===10?'#c69cb8':'#e3c4d5');p.strokeWeight(2);p.line(x,509,x,533);p.line(x,562,x,575);}
-  const x=20+clamp((12*Math.log2(params.frequency/87.3071)-.5)/20,0,1)*560;
+  const pitchSteps=MAX_PITCH_NOTE-MIN_PITCH_NOTE;
+  for(let i=0;i<=pitchSteps;i++){const x=20+i*560/pitchSteps;p.stroke([1,3,6,8,10].includes((MIN_PITCH_NOTE+i)%12)?'#c69cb8':'#e3c4d5');p.strokeWeight(i%12===0?3:1.5);p.line(x,509,x,533);p.line(x,562,x,575);}
+  const x=20+(pitchNote(params.frequency)-MIN_PITCH_NOTE)*560/pitchSteps;
   const y=510+72*(1-2*Math.acos(1-params.tenseness)/Math.PI);
   p.noFill();p.stroke(ink);p.strokeWeight(2.5);p.rect(x-7,y-10,14,20,3);
   p.noStroke();p.fill(dark);p.textAlign(p.LEFT,p.CENTER);p.textSize(14);p.text('VOICEBOX',20,482);
   p.fill(muted);p.textSize(11);p.text('up: voiced / tense   •   down: airy',125,482);
-  p.textAlign(p.LEFT,p.CENTER);p.text('LOW PITCH',22,616);p.textAlign(p.RIGHT,p.CENTER);p.text('HIGH PITCH',578,616);
-  p.textAlign(p.CENTER,p.CENTER);p.textSize(12);p.fill(dark);p.text(params.frequency.toFixed(1)+' Hz   ·   tension '+params.tenseness.toFixed(2),300,616);
+  p.textAlign(p.LEFT,p.CENTER);p.text('C3',22,616);p.textAlign(p.RIGHT,p.CENTER);p.text('C6',578,616);
+  p.textAlign(p.CENTER,p.CENTER);p.textSize(12);p.fill(dark);p.text(pitchLabel(params.frequency)+'   ·   tension '+params.tenseness.toFixed(2),300,616);
   if(!audio){p.noStroke();p.fill('#8d3b7918');p.rect(350,353,223,55,10);p.fill(ink);p.textSize(12);p.textAlign(p.CENTER,p.CENTER);p.text('Press Start audio or touch the sketch',461,374);p.text('Mouse + multitouch',461,392);}
   else if(audio.context.state!=='running'){p.noStroke();p.fill(muted);p.textAlign(p.CENTER,p.CENTER);p.textSize(13);p.text('Audio paused',461,389);}
   if(p.frameCount%10===0&&snapshot)$('live-frequency').textContent=snapshot.frequency.toFixed(1)+' Hz';
  };
 },$('sketch'));
 // Public control API for experiments from this file's console / other sketches.
-window.pinkTrombone={getParameters:()=>({...params}),setParameter:(key,value)=>{if(definition[key]){const d=definition[key];if(Number.isFinite(value)){if(key==='tongueIndex')hardware.setFollow(false);if(key==='tongueDiameter')flexHardware.setFollow(false);if(key==='frequency')pitchHardware.setFollow(false);setParam(key,clamp(value,d[3],d[4]));}}else if(['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'].includes(key))setParam(key,!!value);},getGeometry:()=>geometry(),getAudioSnapshot:()=>snapshot,startAudio,addConstriction:addPin,clearConstrictions:()=>{pinned=[];renderPins();dirty=true;},reset,slider:hardware,flex:flexHardware,pitch:pitchHardware};
+window.pinkTrombone={getParameters:()=>({...params}),setParameter:(key,value)=>{if(definition[key]){const d=definition[key];if(Number.isFinite(value)){if(key==='tongueIndex')hardware.setFollow(false);if(key==='tongueDiameter')flexHardware.setFollow(false);if(key==='frequency')setManualFrequency(clamp(value,d[3],d[4]));else setParam(key,clamp(value,d[3],d[4]));}}else if(['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'].includes(key))setParam(key,!!value);},getGeometry:()=>geometry(),getAudioSnapshot:()=>snapshot,startAudio,addConstriction:addPin,clearConstrictions:()=>{pinned=[];renderPins();dirty=true;},reset,slider:hardware,flex:flexHardware,pitch:pitchHardware};
 })();
 </script>
 </body></html>
