@@ -50,7 +50,7 @@
  <li>With this wiring, bending normally lowers the ADC reading. Reverse flex direction starts enabled so bending increases diameter. Toggle it to swap direction.</li>
  <li>Turn the A2 potentiometer through all 37 chromatic notes from C3 (130.81 Hz) to C6 (1046.50 Hz), including sharps. The full calibrated travel spans three octaves in semitone steps. Pitch starts steady; you can add vibrato or wobble in the sound controls. Use <b>Reverse pitch direction</b> to swap the ends.</li>
  </ol><p>On-screen pitch edits or dragging the voicebox pause only A2 pitch control. On-screen diameter edits pause only flex control. Position edits pause only potentiometer control. Dragging the tongue pauses both. Re-enable the relevant Follow checkbox to resume.</p>
- <p>At diameter 3.50 the original model’s position limits meet at the centre. Position travel returns as diameter decreases.</p>
+ <p>Position and diameter are independent: A0 keeps its full back-to-front travel at every flex-sensor diameter.</p>
  <p>Save settings includes all three calibrations and directions. Loading pauses all hardware controls.</p></div>
  <div><h3>Wiring</h3><table><thead><tr><th>Component</th><th>Connection</th></tr></thead><tbody>
  <tr><td>Flex first pin</td><td>Board supply</td></tr><tr><td>Flex second pin</td><td>A1</td></tr><tr><td>10 kΩ resistor</td><td>A1 to GND</td></tr>
@@ -1497,10 +1497,11 @@ function buildControls(){
   }
  }
 }
-function tongueBounds(diameter){let f=clamp((3.5-diameter)/(3.5-2.05),0,1);f=Math.pow(f,.58)-.2*(f*f-f);return [20.5-f*8.5,20.5+f*8.5];}
+// Keep position independent of diameter so the flex endpoint cannot lock A0.
+function tongueBounds(){return [12,29];}
 function hardwareTongueIndex(){
  const state=hardware?.getState();if(!state?.active)return null;
- const [min,max]=tongueBounds(params.tongueDiameter);
+ const [min,max]=tongueBounds();
  return min+(max-min)*state.position;
 }
 function setParam(key,value){
@@ -1510,7 +1511,7 @@ function setParam(key,value){
  if(key==='linkLoudness'&&value)params.loudness=Math.pow(params.tenseness,.25);
  if(key==='tongueDiameter'||key==='tongueIndex'){
   if(key==='tongueDiameter')params.tongueIndex=hardwareTongueIndex()??params.tongueIndex;
-  const b=tongueBounds(params.tongueDiameter);params.tongueIndex=clamp(params.tongueIndex,b[0],b[1]);
+  const b=tongueBounds();params.tongueIndex=clamp(params.tongueIndex,b[0],b[1]);
  }
  if(key==='masterGain'&&audio)audio.gain.gain.setTargetAtTime(value,audio.context.currentTime,.02);
  dirty=true;syncControls();
@@ -1522,7 +1523,7 @@ function syncControls(){
  }
  for(const key of ['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'])$(key).checked=params[key];
  $('ctl-loudness').disabled=$('num-loudness').disabled=params.linkLoudness;
- const bounds=tongueBounds(params.tongueDiameter);
+ const bounds=tongueBounds();
  $('ctl-tongueIndex').min=$('num-tongueIndex').min=bounds[0].toFixed(4);
  $('ctl-tongueIndex').max=$('num-tongueIndex').max=bounds[1].toFixed(4);
  $('pitch-readout').textContent=pitchLabel(params.frequency);
@@ -1747,7 +1748,7 @@ async function loadState(file){
   for(const [,key,,min,max] of defs)if(Number.isFinite(state.parameters[key]))next[key]=clamp(state.parameters[key],min,max);
   for(const key of ['alwaysVoice','autoWobble','linkLoudness','visualWobble','pinMode'])if(typeof state.parameters[key]==='boolean')next[key]=state.parameters[key];
   next.frequency=steppedFrequency(next.frequency);
-  params=next;const b=tongueBounds(params.tongueDiameter);params.tongueIndex=clamp(params.tongueIndex,b[0],b[1]);
+  params=next;const b=tongueBounds();params.tongueIndex=clamp(params.tongueIndex,b[0],b[1]);
   pinned=(Array.isArray(state.constrictions)?state.constrictions:[]).slice(0,16).filter(c=>Number.isFinite(c.index)&&Number.isFinite(c.diameter)).map((c,i)=>({id:'pin-'+(i+1),name:'C'+(i+1),index:clamp(c.index,2,43),diameter:clamp(c.diameter,.3,3.3),enabled:c.enabled!==false,width:null}));
   nextId=pinned.length+1;pointers.clear();renderPins();setParam('masterGain',params.masterGain);syncControls();dirty=true;$('file-status').textContent='Settings loaded. Enable the relevant Follow checkbox to resume position, flex or pitch hardware control.';
  }catch(error){$('file-status').textContent=error.message;}
@@ -1764,7 +1765,7 @@ function setupPointerEvents(canvas){
   }else if(t.role==='tongue'){
    hardware?.setFollow(false);flexHardware?.setFollow(false);
    const position=fromPoint(p.x,p.y);params.tongueDiameter=clamp(position.diameter,2.05,3.5);
-   const b=tongueBounds(params.tongueDiameter);params.tongueIndex=clamp(position.index,b[0],b[1]);
+   const b=tongueBounds();params.tongueIndex=clamp(position.index,b[0],b[1]);
   }else{
    const position=fromPoint(p.x,p.y);t.index=clamp(position.index,2,43);t.diameter=clamp(position.diameter,-2.9,3.3);
   }
@@ -1841,9 +1842,9 @@ new p5(p=>{
   if(audio?.engine&&p.millis()-lastStatsAt>33){snapshot=audio.engine.snapshot();lastStatsAt=p.millis();}
   p.background('#fffafd');
   const geo=geometry(),live=audio?.context.state==='running',d=(live&&snapshot)?snapshot.diameter:geo.targetDiameter,nose=(live&&snapshot)?snapshot.noseDiameter:defaultNose(),velum=nose[0],vAngle=velum*4;
-  // The original tongue region, with its nonlinear position limits.
-  const region=[];for(let i=12;i<=29;i+=.25)region.push(point(i,2.05));region.push(point(20.5,3.5));path(region,light);
-  for(const [i,dia] of [[12,2.05],[16.25,2.05],[20.5,2.05],[24.75,2.05],[29,2.05],[14.4,2.775],[20.5,2.775],[26.6,2.775],[20.5,3.5]]){const a=point(i,dia);p.noStroke();p.fill('#eecfe1');p.circle(a.x,a.y,6);}
+  // Show the full position range at every tongue diameter.
+  const region=[];for(let i=12;i<=29;i+=.25)region.push(point(i,2.05));for(let i=29;i>=12;i-=.25)region.push(point(i,3.5));path(region,light);
+  for(const dia of [2.05,2.775,3.5])for(const i of [12,16.25,20.5,24.75,29]){const a=point(i,dia);p.noStroke();p.fill('#eecfe1');p.circle(a.x,a.y,6);}
   circle(params.tongueIndex,params.tongueDiameter,18,ink,'#f5d9e8');
   const oral=[];for(let i=0;i<44;i++)oral.push(at(i,d[i]));for(let i=43;i>=0;i--)oral.push(at(i,0));path(oral,pink);
   const nasal=[at(17,-.8)];for(let i=1;i<28;i++)nasal.push(at(i+17,-.8-.9*nose[i]));for(let i=27;i>=1;i--)nasal.push(at(i+17,-.8));path(nasal,pink);
