@@ -126,6 +126,15 @@ let whisperInPlay = false;
 let poseBeforeBeat: { artic: HumanArtic; tipFree: boolean } | null = null;
 
 const FIRST_BEAT = BEAT_PRESETS[0];
+const CLAY_VIEW_KEY = "chimera.clay-view";
+
+function preferredClayView(): boolean {
+  try {
+    return localStorage.getItem(CLAY_VIEW_KEY) !== "false";
+  } catch {
+    return true;
+  }
+}
 
 export const useStore = create<State>((set, get) => ({
   started: false,
@@ -141,7 +150,7 @@ export const useStore = create<State>((set, get) => ({
   volume: 0.8,
   hold: false,
   heldNotes: [],
-  view: { pressure: true, particles: true, grid: false, calipers: true, threeD: false },
+  view: { pressure: true, particles: true, grid: false, calipers: true, threeD: preferredClayView() },
   // Open on Play so the Arduino pitch, flex and start/stop controls are ready.
   mode: "play",
   setMode: (m) => {
@@ -373,7 +382,14 @@ export const useStore = create<State>((set, get) => ({
     }
     updateGate(get());
   },
-  setView: (v) => set((s) => ({ view: { ...s.view, ...v } })),
+  setView: (v) => {
+    if (v.threeD !== undefined) {
+      try {
+        localStorage.setItem(CLAY_VIEW_KEY, String(v.threeD));
+      } catch { /* The current tab still keeps its view if storage is unavailable. */ }
+    }
+    set((s) => ({ view: { ...s.view, ...v } }));
+  },
   midi: { status: "off", inputs: [] },
   setMidi: (on) => {
     const noteOff = (n: number) => get().noteOff(n);

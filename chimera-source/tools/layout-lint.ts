@@ -340,9 +340,9 @@ async function main() {
       await check(`${m} (running)`);
       await pages(`${m} (running)`);
       if (m === "play") {
-        // the 3D face lays its readouts out on its own
+        // Check the alternate 2D readouts, then restore the default clay view.
         await page.locator(".view-toggles .toggle", { hasText: "3D" }).click();
-        await check("play (running), 3D", 2500);
+        await check("play (running), 2D", 2500);
         await page.locator(".view-toggles .toggle", { hasText: "3D" }).click();
       }
       if (m === "speak") {

@@ -2,6 +2,8 @@
 
 Double-click `start.command` to open Chimera in Chrome. Keep its terminal window open while playing. The app runs at http://127.0.0.1:5319/; a stable local address preserves browser calibration between launches.
 
+The default Clay 3D view shows a sculpted side section. The tongue follows the flex sensor and the on-screen articulators. Drag to turn the sculpture slightly, scroll or pinch to zoom, and double-click to reset. Switch off Clay 3D for the original 2D editing handles.
+
 Connect Arduino, select the board, then press Breathe or D2. Close Serial Monitor first. Sound comes from the computer.
 
 - A1: flex sensor → tongue height (the nearest equivalent of Pink Trombone’s diameter).

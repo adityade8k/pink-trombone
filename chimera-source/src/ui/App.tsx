@@ -91,7 +91,7 @@ function ViewToggles() {
   const bestiary = useStore((s) => s.mode === "bestiary");
   return (
     <div className="view-toggles">
-      {!bestiary && <Toggle label="3D" checked={view.threeD} onChange={(v) => setView({ threeD: v })} />}
+      {!bestiary && <Toggle label="Clay 3D" checked={view.threeD} onChange={(v) => setView({ threeD: v })} />}
       <Toggle label="Sound pressure" checked={view.pressure} onChange={(v) => setView({ pressure: v })} />
       {!bestiary && <Toggle label="Airflow" checked={view.particles} onChange={(v) => setView({ particles: v })} />}
       <Toggle label={bestiary ? "Labels" : "Measurements"} checked={view.calipers} onChange={(v) => setView({ calipers: v })} />

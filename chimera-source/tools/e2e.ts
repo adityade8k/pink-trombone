@@ -27,15 +27,26 @@ async function run(viewport: { width: number; height: number }, tag: string) {
   await page.goto(url, { waitUntil: "networkidle" });
   await page.waitForTimeout(400);
   await page.screenshot({ path: `${outDir}/${tag}-0-idle.png` });
-  // the app opens on Sing; this run starts in Play
+  // Start the voice and exercise both human anatomy views in Play.
   await page.getByRole("radio", { name: "Play" }).click();
   // each tab's main button starts the audio: Play's breathes
   const startBtn = page.getByRole("button", { name: /^Breathe$/ });
   await startBtn.click();
   await page.waitForTimeout(1800);
   await page.screenshot({ path: `${outDir}/${tag}-1-running.png` });
-  // drag the tongue body handle via the canvas: find it by probing (center-ish of viewport)
-  const box = await page.locator(".anatomy canvas").boundingBox();
+  const clayCanvas = page.getByRole("img", { name: /^Clay cross section/ });
+  const clayButton = page.locator(".view-toggles label").filter({ hasText: "Clay 3D" });
+  const area = await clayCanvas.boundingBox();
+  if (!area) throw new Error("The default clay view has no visible canvas");
+  const orbitX = area.x + area.width * 0.45, orbitY = area.y + area.height * 0.4;
+  await page.mouse.move(orbitX, orbitY);
+  await page.mouse.down();
+  await page.mouse.move(orbitX + 34, orbitY + 8, { steps: 5 });
+  await page.mouse.up();
+  await clayCanvas.dblclick();
+  await clayButton.click();
+  // The 2D anatomy view provides the draggable articulator handles.
+  const box = await page.getByRole("img", { name: /^Vocal tract cross-section/ }).boundingBox();
   if (box) {
     // move over likely tongue area and drag up/forward
     const sx = box.x + box.width * 0.47, sy = box.y + box.height * 0.42;
@@ -44,6 +55,8 @@ async function run(viewport: { width: number; height: number }, tag: string) {
     await page.mouse.move(sx + 40, sy - 30, { steps: 10 });
     await page.mouse.up();
   }
+  await clayButton.click();
+  await clayCanvas.waitFor();
   // vowel map drag
   const vm = await page.locator(".vowel-map").boundingBox();
   if (vm) {
